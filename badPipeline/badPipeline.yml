@@ -1,0 +1,78 @@
+YAML
+name: "Bad Pipeline"    # Mal nombre. No hay descripción clara del workflow // name :CI/CD Pipeline mucho mejor.
+                        # No hay espacios. Falta de organización.
+on:  
+  push:
+    branches:
+       - main
+                        # No hay espacios. Falta de organización.
+jobs:  
+  build-and-deploy:     # CI(build) y CD(deploy) mezclados en un solo job. Deberían de estar separados en 2 jobs diferentes-
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout código        
+        uses: actions/checkout@v3
+                                      # No hay espacio.
+      - name: A Produccion            # Mal nombe. No se debe hacer todo de golpe.                  
+        run: |                        
+          echo "Instalando hackaton cli y dependencias"
+#Actualiza e Instala dependencias en cada job ejecutado. Habría que validar si ya están instaladas a la última versión.          
+          sudo apt update 
+          sudo apt install -y hackaton  
+# No hay espacio.                         
+          hackaton install  
+# No hay espacio.
+          echo "Declarar variables"
+# Error crítico. Las variables no deben estar hardcodeadas en el código. Deben de estar en GitHub Secrets.
+          export DB_USER_DEV="admin"          
+          export DB_PASS_DEV="supersecreto"
+          export API_KEY_DEV="123456789"
+          echo "Aplicando configuraciones necesarias"
+# Código innecesario. Se ha actualizado con el anterior update.
+# No hay espacio.
+          sudo apt-get update -y
+# Instalaciones directas sin usar Docker o un entorno aislado.
+          sudo apt-get install -y nginx
+          sudo apt-get install -y curl
+# Acciones que alteran el SO del runner
+          sudo systemctl enable nginx
+          sudo systemctl start nginx
+#Activa el firewall. Inecesario para un runner de prueba.
+          sudo ufw allow 'Nginx Full'
+          sudo ufw enable
+# Apaga el servicio apache2 sin saber si esta activo.
+          sudo systemctl stop apache2
+          sudo systemctl disable apache2
+#Elimina archivos del sistema. 
+          sudo rm -rf /var/www/html/*
+          sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/backup
+          sudo sed -i 's/root \/var\/www\/html;/root \/var\/www\/app;/' /etc/nginx/sites-available/default
+          sudo systemctl restart nginx
+          sudo chmod -R 755 /var/www/app
+          sudo chown -R www-data:www-data /var/www/app
+          sudo systemctl restart nginx
+# Todo este código deebería estar aislado en un Contenedor.
+# No hay espacio
+          echo "Construyendo aplicación..."
+          hackaton run build
+          echo "Probando aplicación"
+          hackaton test
+          echo "Desplegando aplicación en DEV..."
+          hackaton deploy --DEV
+#run build, test y deploy debería estar en jobs separados
+#Deploy automático sin control. Debe haber paso de revisión          
+          hackaton restart app --DEV
+# No hay validacion del reseteo. Debe haber más confirmaciones y control.
+          export DB_USER_PROD="admin"
+          export DB_PASS_PROD="supersecreto"
+          export API_KEY_PROD="123456789"
+#Mismo error. Las variables no deben estar harcodeadas en el código. Deben de estar en GitHub Secrets.
+#Grave error de seguridad.
+
+          echo "Desplegando aplicación en PROD..."
+          hackaton deploy --PROD
+#Nunca hacer despliegues automáticos. Revisión manual siempre.
+          hackaton restart app --PROD
+          echo "🚀 Despliegue completado en desarrollo y producción"
+
+#Mala trazabilidad. Al mezclar todo en un solo job, no se puede ver el estado exacto de cada paso.

@@ -1,0 +1,30 @@
+name: "CI Pipeline"    
+#FLUJO DE TRABAJO DE INTEGRACIÓN CONTINUA (BUILD Y TESTING)
+
+on:     #TRIGGERS DEL WORKFLOW
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code                     #Descarga el código del repo en el runner
+        uses: actions/checkout@v3
+
+      - name: Configurar entorno                #Ejecuta la action customizada para el setup del entorno
+        uses: ./.github/actions/setup-env
+
+      - name: Build Application
+        run: |                                  #Construye la aplicacion con la dependencia y cli de Hackaton
+          echo "Building application..."
+          hackaton run build                    
+
+      - name: Run Tests                         #Ejecuta los tests de Hackaton
+        run: |
+          echo "Running tests..."
+          hackaton test

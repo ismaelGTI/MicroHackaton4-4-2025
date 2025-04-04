@@ -1,0 +1,9 @@
+name: "Setup Environment"
+description: "Configura las dependencias necesarias"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Instalar dependencias
+      run: .github/scripts/install_deps.sh
+      shell: bash

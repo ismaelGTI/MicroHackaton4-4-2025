@@ -1,0 +1,9 @@
+name: "Deploy App"
+description: "Despliega la aplicación en producción"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Ejecutar script de despliegue
+      run: .github/scripts/deploy.sh
+      shell: bash

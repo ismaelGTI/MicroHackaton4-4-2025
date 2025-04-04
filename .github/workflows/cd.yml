@@ -1,0 +1,28 @@
+name: "CD Pipeline"
+# FLUJO DE TRABAJO DE DESPLIEGUE CONTINUO (DEPLOY)
+
+on: #TRIGGER DEL WORKFLOW
+  workflow_run:
+    workflows: ["CI Pipeline"] 
+    types:
+      - completed     #Se ejecutará una vez se haya completado el workflow de CI.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Code                             #Descarga el código del repo en el runner  
+        uses: actions/checkout@v3
+
+      - name: Configurar entorno                        #Ejecuta la action customizada para el setup del entorno
+        uses: ./.github/actions/setup-env
+
+      - name: Aprobación Automática para Producción     #(if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')     
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}     #Token de acceso a la API de GitHub para la acción de aprobación automática.
+
+      - name: Desplegar en Producción
+        if: github.event_name == 'workflow_run'
+        uses: ./.github/actions/deploy                  #Ejecuta la Action para el desplegue (/deploy/action.yml)
